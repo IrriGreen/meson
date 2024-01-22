@@ -15,6 +15,7 @@ from .mixins.ccrx import CcrxCompiler
 from .mixins.xc16 import Xc16Compiler
 from .mixins.compcert import CompCertCompiler
 from .mixins.ti import TICompiler
+from .mixins.tiarmclang import TIArmClangCompiler
 from .mixins.arm import ArmCompiler, ArmclangCompiler
 from .mixins.visualstudio import MSVCCompiler, ClangClCompiler
 from .mixins.gnu import GnuCompiler
@@ -734,6 +735,40 @@ class TICCompiler(TICompiler, CCompiler):
 class C2000CCompiler(TICCompiler):
     # Required for backwards compat with projects created before ti-cgt support existed
     id = 'c2000'
+
+class TIArmClangCCompiler(TIArmClangCompiler, CCompiler):
+    id = 'tiarmclang'
+
+    def __init__(self, ccache: T.List[str], exelist: T.List[str], version: str, for_machine: MachineChoice, is_cross: bool,
+                 info: 'MachineInfo', exe_wrapper: T.Optional['ExternalProgram'] = None,
+                 linker: T.Optional['DynamicLinker'] = None,
+                 full_version: T.Optional[str] = None):
+        CCompiler.__init__(self, ccache, exelist, version, for_machine, is_cross,
+                           info, exe_wrapper, linker=linker, full_version=full_version)
+        TIArmClangCompiler.__init__(self)
+        default_warn_args = ['-Wall', '-Winvalid-pch']
+        self.warn_args = {'0': [],
+                          '1': default_warn_args,
+                          '2': default_warn_args + ['-Wextra'],
+                          '3': default_warn_args + ['-Wextra', '-Wpedantic'],
+                          'everything': ['-Weverything']}
+
+    def get_options(self) -> 'MutableKeyedOptionDictType':
+        opts = CCompiler.get_options(self)
+        std_opt = opts[OptionKey('std', machine=self.for_machine, lang=self.language)]
+        assert isinstance(std_opt, coredata.UserStdOption), 'for mypy'
+        std_opt.set_versions(['c89', 'c90', 'c99', 'c11'], gnu=True)
+        return opts
+
+    def get_option_compile_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
+        args = []
+        std = options[OptionKey('std', machine=self.for_machine, lang=self.language)]
+        if std.value != 'none':
+            args.append('-std=' + std.value)
+        return args
+
+    def get_option_link_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
+        return []
 
 class MetrowerksCCompilerARM(MetrowerksCompiler, CCompiler):
     id = 'mwccarm'

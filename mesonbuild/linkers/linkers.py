@@ -1130,6 +1130,28 @@ class ArmClangDynamicLinker(ArmDynamicLinker):
     def import_library_args(self, implibname: str) -> T.List[str]:
         return ['--symdefs=' + implibname]
 
+class TIArmClangDynamicLinker(PosixDynamicLinkerMixin, DynamicLinker):
+    """Linker for the TI ARM Clang compiler."""
+    id = 'tiarmlnk'
+
+    def __init__(self, exelist, for_machine: mesonlib.MachineChoice,
+                 *, version: str = 'unknown version'):
+        super().__init__(exelist, for_machine, '', [],
+                         version=version)
+
+    def get_accepts_rsp(self) -> bool:
+        return False
+
+    def get_std_shared_lib_args(self) -> 'T.NoReturn':
+        raise MesonException('The TI Arm Clang Linker does not support shared libraries')
+
+    def get_allow_undefined_args(self) -> T.List[str]:
+        return []
+
+    def no_undefined_args(self) -> T.List[str]:
+        return self._apply_prefix('--no-undefined')
+
+
 class QualcommLLVMDynamicLinker(LLVMDynamicLinker):
 
     """ARM Linker from Snapdragon LLVM ARM Compiler."""
