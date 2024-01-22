@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-"""Representations specific to the Texas Instruments compiler family."""
+"""Representations specific to the Texas Instruments compiler family.
+(ARM-CGT)"""
 
 import os
 import typing as T

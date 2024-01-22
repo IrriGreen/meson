@@ -18,6 +18,7 @@ from .mixins.ccrx import CcrxCompiler
 from .mixins.xc16 import Xc16Compiler
 from .mixins.compcert import CompCertCompiler
 from .mixins.ti import TICompiler
+from .mixins.tiarmclang import TIArmClangCompiler
 from .mixins.arm import ArmCompiler, ArmclangCompiler
 from .mixins.visualstudio import MSVCCompiler, ClangClCompiler
 from .mixins.gnu import GnuCompiler, GnuCStds
@@ -712,6 +713,40 @@ class C2000CCompiler(TICCompiler):
 
 class C6000CCompiler(TICCompiler):
     id = 'c6000'
+
+class TIArmClangCCompiler(TIArmClangCompiler, CCompiler):
+    id = 'tiarmclang'
+
+    def __init__(self, ccache: T.List[str], exelist: T.List[str], version: str,
+                 for_machine: MachineChoice, is_cross: bool, info: 'MachineInfo',
+                 linker: T.Optional['DynamicLinker'] = None,
+                 defines: T.Optional[T.Dict[str, str]] = None,
+                 full_version: T.Optional[str] = None):
+        CCompiler.__init__(self, ccache, exelist, version, for_machine, is_cross,
+                           info, linker=linker, full_version=full_version)
+        TIArmClangCompiler.__init__(self)
+        default_warn_args = ['-Wall', '-Winvalid-pch']
+        self.warn_args = {'0': [],
+                          '1': default_warn_args,
+                          '2': default_warn_args + ['-Wextra'],
+                          '3': default_warn_args + ['-Wextra', '-Wpedantic'],
+                          'everything': ['-Weverything']}
+
+    def get_options(self) -> 'MutableKeyedOptionDictType':
+        opts = CCompiler.get_options(self)
+        self._update_language_stds(opts, ['c89', 'c90', 'c99', 'c11'])
+        return opts
+
+    def get_option_std_args(self, target: BuildTarget, env: Environment, subproject: T.Optional[str] = None) -> T.List[str]:
+        args = []
+        std = self.get_compileropt_value('std', env, target, subproject)
+        assert isinstance(std, str)
+        if std != 'none':
+            args.append('-std=' + std)
+        return args
+
+    def get_option_link_args(self, target: 'BuildTarget', env: 'Environment', subproject: T.Optional[str] = None) -> T.List[str]:
+        return []
 
 class MetrowerksCCompilerARM(MetrowerksCompiler, CCompiler):
     id = 'mwccarm'

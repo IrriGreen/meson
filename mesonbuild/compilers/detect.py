@@ -414,6 +414,13 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
             return cls(
                 ccache, compiler, version, for_machine, is_cross, info,
                 full_version=full_version, linker=linker)
+        if 'TI Arm Clang Compiler' in out:
+            cls = c.TIArmClangCCompiler if lang == 'c' else cpp.TIArmClangCPPCompiler
+            linker = linkers.TIArmClangDynamicLinker(compiler, for_machine, version=version)
+            env.coredata.add_lang_args(cls.language, cls, for_machine, env)
+            return cls(
+                ccache, compiler, version, for_machine, is_cross, info,
+                full_version=full_version, linker=linker)
         if 'CL.EXE COMPATIBILITY' in out:
             # if this is clang-cl masquerading as cl, detect it as cl, not
             # clang
