@@ -2683,7 +2683,7 @@ class CustomTarget(Target, CustomTargetBase, CommandBase):
             return self.depfile
 
     def is_linkable_output(self, output: str) -> bool:
-        if output.endswith(('.a', '.dll', '.lib', '.so', '.dylib')):
+        if output.endswith(('.a', '.dll', '.lib', '.so', '.dylib', '.cmd', '.genlibs')):
             return True
         # libfoo.so.X soname
         if re.search(r'\.so(\.\d+)*$', output):
