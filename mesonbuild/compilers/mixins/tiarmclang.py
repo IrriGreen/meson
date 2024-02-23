@@ -67,3 +67,10 @@ class TIArmClangCompiler(Compiler):
                 parameter_list[idx] = i[:2] + os.path.normpath(os.path.join(build_dir, i[2:]))
 
         return parameter_list
+
+    def can_compile(self, src: 'mesonlib.FileOrString') -> bool:
+        # XXX - Why can't I do this in __init__()?
+        # Assembly
+        self.can_compile_suffixes.add('s')
+        self.can_compile_suffixes.add('sx')
+        return self.can_compile_suffixes
